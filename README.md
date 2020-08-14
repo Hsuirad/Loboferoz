@@ -2,7 +2,10 @@
 Dinosaur game variant made about the big bad wolf but in spanish because......
 
 # Game
-!()[screencapone.png]
+![](screencapone.png)
+![](screencaptwo.png)
+![](screencapthree.png)
+![](screencapfour.png)
 
 ## Controls
 **Jump** - spacebar
