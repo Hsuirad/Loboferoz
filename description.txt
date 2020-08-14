@@ -1,0 +1,336 @@
+CODE:
+    let canvas = document.getElementById('board');
+    let c = canvas.getContext('2d');
+EXPLANATION:
+    the canvas variable is simply just linking the HTML file to the javascript file, and the c variable creates a sort of drawing board
+
+CODE:
+    canvas.height = window.innerHeight
+    canvas.width= window.innerWidth;
+
+    document.addEventListener('keydown', function(e){
+        if(e.key == " " && playing){
+            dog.jump = true;
+        }
+    })
+
+    document.addEventListener('keyup', function(e){
+        if(e.key == " "){
+            dog.jump = false;
+        }
+    })
+EXPLANATION:
+    canvas height and width made to maximum
+
+    document.addEventListener is basically making the game respond to key presses, and if the key pressed is a spacebar then it jumps (as long as the playing variable is true)
+
+CODE:
+    document.addEventListener('click', function(e){
+        if(e.clientX < backgroundFront.width*backScale*0.6+playButt.width*backScale
+            && e.clientX > backgroundFront.width*backScale*0.6
+            && e.clientY > backgroundFront.height*backScale*0.3
+            && e.clientY < backgroundFront.height*backScale*0.3 + playButt.height*backScale){
+                playing = true;
+                gameSpeed = 5;
+        }
+        if(e.clientX < backgroundFront.width*backScale*0.6+howToPlay.width*backScale
+            && e.clientX > backgroundFront.width*backScale*0.6
+            && e.clientY > backgroundFront.height*backScale*0.5
+            && e.clientY < backgroundFront.height*backScale*0.5 + howToPlay.height*backScale){
+                alert('Press spacebar to jump, don\'t run into any obstacles or else the games over!!')
+        }
+        if(e.clientX < backgroundFront.width*backScale*0.93+muteButt.width*backScale
+            && e.clientX > backgroundFront.width*backScale*0.93
+            && e.clientY > backgroundFront.height*backScale*0.05
+            && e.clientY < backgroundFront.height*backScale*0.05 + muteButt.height*backScale){
+                mute = !mute;
+        }
+        console.log(e)
+    })
+EXPLANATION:
+    this gets mouse position and sees if its inside one of the start screen buttons, if it is and you click it does whatever the button does
+
+CODE:
+    let backgroundFront = new Image();
+    let backgroundMid = new Image();
+    let backgroundBack = new Image();
+    let dogArr = new Array(5).fill(0);
+    let obstacle = new Image();
+    let playButt = new Image();
+    let muteButt = new Image();
+    let muteButtTwo = new Image();
+    let howToPlay = new Image();
+    let logo = new Image();
+
+    backgroundBack.src = 'resources/backlayerback.png';
+    backgroundMid.src = 'resources/middlelayerback.png';
+    backgroundFront.src = 'resources/frontlayerback.png';
+    obstacle.src = 'resources/obstacle.png';
+    muteButt.src = 'resources/mutebtn.png';
+    howToPlay.src = 'resources/howtoplay.png';
+    playButt.src = 'resources/playbtn.png'
+    logo.src = 'resources/logo.png';
+    muteButtTwo.src = 'resources/mutebtn2.png'
+
+    for(let i = 1; i < 6; i++){
+        dogArr[i-1] = new Image();
+        dogArr[i-1].src = `resources/dog${i}.png`
+    }
+EXPLANATION:
+    loading in all the images
+
+CODE:
+    class Dog{
+        constructor(x, y, num){
+            this.x = x;
+            this.y = y;
+            this.dogNum = num;
+            this.isMoving = true;
+            this.dogForward = true;
+            this.gameSpeedX = 5;
+            this.jump= false;
+            this.dy = 0;
+            this.ascend = false;
+            this.descend = false;
+            this.vel = (-1 + Math.sqrt(1+4*obstacle.height*dogScale))/2;
+        }
+
+        draw(){
+            c.beginPath();
+            c.drawImage(dogArr[this.dogNum], this.x, this.y, dogArr[this.dogNum].width*dogScale, dogArr[this.dogNum].height*dogScale);
+        }
+
+        update(){
+            if(this.isMoving){
+                this.x+=gameSpeed;
+            }
+
+            if(this.x>canvas.width/3){
+                this.isMoving = false;
+            }
+
+            if(this.dogForward){
+                if(this.dogNum == 4){
+                    this.dogForward = false;
+                    this.dogNum--
+                }
+                else{
+                    this.dogNum++
+                }
+            }
+            else{
+                if(this.dogNum == 0){
+                    this.dogForward = true;
+                    this.dogNum++
+                }
+                else{
+                    this.dogNum--;
+                }
+            }
+
+            if(this.dy <=0 &&this.jump && this.y >= (backScale*0.5)*backgroundFront.height-dogArr[0].height*dogScale-(this.vel*(this.vel+1)/2)){
+                this.dy = -this.vel;
+            }
+            else if(this.y < (backScale*0.96)*backgroundFront.height-dogArr[0].height*dogScale && this.dy < Math.abs(this.vel)){
+                this.dy++;
+            }
+            else if(this.dy == Math.abs(this.vel) || this.y >= (backScale*0.96)*backgroundFront.height-dogArr[0].height*dogScale){
+                this.dy = 0;
+                this.y = (backScale*0.96)*backgroundFront.height-dogArr[0].height*dogScale
+            }
+
+            if(this.y != (backScale*0.96)*backgroundFront.height-dogArr[0].height*dogScale){
+                this.dogNum = 0;
+            }
+
+            obs.forEach(elem => {
+                //console.log(dog.x + (dogScale*dogArr[0].width*(100/680)) + ":" + elem.x + (obstacle.width*dogScale*(85/255)) + "\n" + dog.x + "-" +elem.x)
+                if(dog.x + (dogScale*dogArr[0].width*(100/680)) >= elem.x + (obstacle.width*dogScale*(85/255))
+                    && dog.x + (dogScale*dogArr[0].width*(100/680)) < elem.x + obstacle.width*dogScale-(obstacle.width*dogScale*((255-85-137)/255))
+                    && dog.y+((430/603)*dogScale*dogArr[0].height) > elem.y+(obstacle.height*dogScale*(242/392))){
+                    death();
+                }
+                if(dog.x + (dogScale*dogArr[0].width*((100+210)/688)) >= elem.x + (obstacle.width*dogScale*(85/255))
+                    && dog.x + (dogScale*dogArr[0].width*((100+210)/688)) < elem.x + obstacle.width*dogScale-(obstacle.width*dogScale*((255-85-137)/255))
+                    && dog.y+((430/603)*dogScale*dogArr[0].height) > elem.y+(obstacle.height*dogScale*(242/392))){
+                    death();
+                }
+            })
+
+            this.y += this.dy;
+            this.draw();
+        }
+    }
+EXPLANATION:
+    this is the dog class with two main classes (update & draw) and 3 parameters (x, y, num)
+    basically update changes its position and if it hits an obstacle it stops it from moving and shows the kill screen
+    if not it keeps moving and if spacebar is pressed it jumps
+
+CODE:
+    class Obstacle{
+        constructor(x, y){
+            this.x = x;
+            this.y = y;
+        }
+
+        draw(){
+            this.x-=gameSpeed;
+            c.drawImage(obstacle, this.x, this.y+obstacle.height*dogScale/2, obstacle.width*dogScale, obstacle.height*dogScale)
+        }
+    }
+EXPLANATION:
+    this is the obstacle class, basically it takes an x and y value
+    and itll spawn an obstacle at an (x, y) coordinate (all y values are the same for all obstacles since theyre on the ground)
+
+CODE:
+    let pause = false;
+
+    let death = () => {
+        pause = true;
+        gameSpeed = 0;
+        setTimeout(function(){
+            distance = 0;
+            dog = new Dog(backgroundFront.width*backScale*0.2, (backScale*0.96)*backgroundFront.height-dogArr[0].height*dogScale, 0)
+            obs = []
+            pause = false;
+            gameSpeed = 5
+            playing = false;
+        }, 5000)
+        
+    }
+EXPLANATION:
+    a variable "pause" it declared and if the dog hits an obstacle pause = true
+    also the death function is declared, if it dies it basically just restarts the game
+    after a 5 second timeout (5000 milliseconds) which is what the setTimeout built-in javascript function does
+
+CODE:
+    let backOneX = midOneX = frontOneX = 0;
+
+    let backScale = 5;
+    let dogScale = 0;
+
+    let dog;
+    let distance = 0;
+
+    let gameSpeed = 0;
+EXPLANATION:
+    backOneX and the other two variables are just the x coordinate of the background
+    since the backgrounds move differently in relative to each other
+    if you look closely. backscale and dogscale are for scaling if the browser
+    is a different size window. dog is the variable for the Dog class and
+    distance is how far its moved. gameSpeed is the speed of the game
+
+CODE:
+    let drawBack = () => {
+        c.drawImage(backgroundBack, backOneX, 0, backgroundFront.width*backScale, backgroundFront.height*backScale)
+        c.drawImage(backgroundBack, backOneX+backgroundFront.width*backScale, 0, backgroundFront.width*backScale, backgroundFront.height*backScale)
+        c.drawImage(backgroundMid, midOneX, 0, backgroundFront.width*backScale, backgroundFront.height*backScale)
+        c.drawImage(backgroundMid, midOneX+backgroundFront.width*backScale, 0, backgroundFront.width*backScale, backgroundFront.height*backScale)
+        c.drawImage(backgroundFront, frontOneX, 0, backgroundFront.width*backScale, backgroundFront.height*backScale)
+        c.drawImage(backgroundFront, frontOneX+backgroundFront.width*backScale, 0, backgroundFront.width*backScale, backgroundFront.height*backScale)
+    }
+EXPLANATION:
+    this is just a function to draw the background, its three layers that loop endlessly
+
+CODE:
+    let toScore = val => {
+        return ("0" + (Math.round(val/20)+10000).toString().substring(1, 5));
+    }
+EXPLANATION:
+    this function simply returns a number like 5 or 234 in a format like 00005 or 00234 (five zeroes of point space)
+
+CODE:
+    let obs=[];
+
+    let highScore = 0;
+
+    let playing = false;
+    let mute = false;
+EXPLANATION:
+    obs is an array for all the obstacles (its max size is 3 and updates continuosly).
+    highScore is a variable to store the highScore. playing is a boolean variable that is
+    true when youre playing the game. mute is true when the sound is set to off.
+
+CODE:
+    let animate = () => {
+        c.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if(playing){
+            drawBack();
+            for(let i = obs.length-1; i>=0; i--){
+                if(obs[i].x < 0-obstacle.width){
+                    obs.shift();
+                }
+                else{
+                    obs[i].draw();
+                }
+            }
+
+            pause?dog.draw():dog.update();
+            pause?distance+=0:distance++;
+            pause?gameSpeed=gameSpeed:gameSpeed+=0.001;
+
+            if(distance > highScore){
+                highScore = distance;
+            }
+
+            c.font = `${65*backScale}px Verdana`
+            c.beginPath();
+            c.fillStyle = 'white'
+            c.fillText(`HI   ${toScore(highScore)}              ${toScore(distance)}`, backgroundFront.width*backScale*0.7, backgroundFront.height*backScale*(0.1))
+            
+
+            if(pause){
+                c.font = `${150*backScale}px Verdana`
+                c.beginPath();
+                c.fillStyle = 'white'
+                c.fillText(`Score: ${toScore(distance)}`, backgroundFront.width*backScale*0.35, backgroundFront.height*backScale*0.5)
+            }
+
+            if(obs.length < 3){
+                obs.push(new Obstacle((backgroundFront.width*backScale*Math.random()+400)+backgroundFront.width*backScale*(obs.length+1), (backScale*0.96)*backgroundFront.height-dogArr[0].height*dogScale));
+                
+            }
+            
+            if(dog.x > canvas.width/3){
+                backOneX-=gameSpeed/3;
+                midOneX-=gameSpeed/2;
+                frontOneX-=gameSpeed/1;
+                if(Math.abs(backOneX) > (backgroundFront.width*backScale)){
+                    backOneX = 0;
+                }
+                if(Math.abs(midOneX) > (backgroundFront.width*backScale)){
+                    midOneX = 0;
+                }
+                if(Math.abs(frontOneX) > (backgroundFront.width*backScale)){
+                    frontOneX = 0;
+                }
+            }
+        }
+        else{
+            drawBack();
+            dog.draw();
+            c.drawImage(logo, backgroundFront.width*backScale*0.1, backgroundFront.height*backScale*0.1, logo.width*backScale, logo.height*backScale)
+            c.drawImage(playButt, backgroundFront.width*backScale*0.6, backgroundFront.height*backScale*0.3, playButt.width*backScale, playButt.height*backScale)
+            c.drawImage(howToPlay, backgroundFront.width*backScale*0.6, backgroundFront.height*backScale*0.5, howToPlay.width*backScale, howToPlay.height*backScale)
+            c.drawImage((mute?muteButtTwo:muteButt), backgroundFront.width*backScale*0.93, backgroundFront.height*backScale*0.05, (mute?muteButtTwo:muteButt).width*backScale, (mute?muteButtTwo:muteButt).height*backScale)
+        }
+    }
+EXPLANATION:
+    this is the game loop function, first it clears the screen from the previous one,
+    then if youre playing itll create new obstacles and update the dogs position, if not
+    itll pause and wait for playing to be true or just draw the start screen with the buttons and "how to play"
+
+CODE:
+    let gameLoop;
+
+    window.onload = function(){
+        backScale = canvas.width/backgroundFront.width;
+        dogScale = backScale
+        dog = new Dog(backgroundFront.width*backScale*0.2, (backScale*0.96)*backgroundFront.height-dogArr[0].height*dogScale, 0)
+        gameLoop = setInterval(animate, 10);
+    }
+EXPLANATION:
+    gameLoop function is just the loop of the game, it updates every 10 milliseconds (0.01 seconds)
+    and it just draws everything onto the screen. "window.onload" waits until all the images (like the
+    image of the dog and obstacles) have completely loaded and then starts the game
