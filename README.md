@@ -3,4 +3,5 @@ Dinosaur game variant made about the big bad wolf but in spanish because......
 
 ## Controls
 **Jump** - up/spacebar
-yea thats about it
+
+yea thats about it, hold more up for longer jump
